@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +16,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Единственная роль, входящая через email/password (Filament-панель),
+        // остальные — телефон+OTP (ARCHITECTURE.md §2).
+        User::firstOrCreate(
+            ['email' => 'admin@edujob.kg'],
+            [
+                'name' => 'Platform Admin',
+                'phone' => '+996000000000',
+                'phone_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'is_platform_admin' => true,
+            ]
+        );
     }
 }

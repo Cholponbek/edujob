@@ -1,98 +1,115 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { ref, watchEffect } from 'vue';
 
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
+const page = usePage();
+
+// Два шага одной формы: сначала телефон (запрос кода), затем код
+// (подтверждение и вход/неявная регистрация) — PhoneOtpController
+// обслуживает оба действия одним флоу.
+const step = ref('phone');
 
 const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
+    phone: '',
+    code: '',
 });
 
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+watchEffect(() => {
+    if (page.props.flash?.status === 'otp-sent') {
+        step.value = 'code';
+    }
+});
+
+const requestCode = () => {
+    form.post(route('otp.request'), {
+        preserveScroll: true,
     });
+};
+
+const verifyCode = () => {
+    form.post(route('otp.verify'), {
+        preserveScroll: true,
+        onError: () => form.reset('code'),
+    });
+};
+
+const changePhone = () => {
+    step.value = 'phone';
+    form.reset('code');
 };
 </script>
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head title="Вход" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
-
-        <form @submit.prevent="submit">
+        <form v-if="step === 'phone'" @submit.prevent="requestCode">
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="phone" value="Номер телефона" />
 
                 <TextInput
-                    id="email"
-                    type="email"
+                    id="phone"
+                    type="tel"
                     class="mt-1 block w-full"
-                    v-model="form.email"
+                    v-model="form.phone"
+                    placeholder="+996 5XX XXXXXX"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="tel"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600 dark:text-gray-400"
-                        >Remember me</span
-                    >
-                </label>
+                <InputError class="mt-2" :message="form.errors.phone" />
             </div>
 
             <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
-                >
-                    Forgot your password?
-                </Link>
-
                 <PrimaryButton
-                    class="ms-4"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Log in
+                    Получить код
+                </PrimaryButton>
+            </div>
+        </form>
+
+        <form v-else @submit.prevent="verifyCode">
+            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                Код отправлен на {{ form.phone }}.
+                <button
+                    type="button"
+                    class="underline"
+                    @click="changePhone"
+                >
+                    Изменить номер
+                </button>
+            </p>
+
+            <div>
+                <InputLabel for="code" value="Код из SMS" />
+
+                <TextInput
+                    id="code"
+                    type="text"
+                    inputmode="numeric"
+                    class="mt-1 block w-full"
+                    v-model="form.code"
+                    required
+                    autofocus
+                />
+
+                <InputError class="mt-2" :message="form.errors.code" />
+            </div>
+
+            <div class="mt-4 flex items-center justify-end">
+                <PrimaryButton
+                    :class="{ 'opacity-25': form.processing }"
+                    :disabled="form.processing"
+                >
+                    Войти
                 </PrimaryButton>
             </div>
         </form>

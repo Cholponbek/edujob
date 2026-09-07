@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            // Auth — телефон + SMS-код (ARCHITECTURE.md §2). Пока nullable:
-            // guard на телефон+OTP ещё не реализован (см. чеклист "Auth" в
-            // ARCHITECTURE.md), текущий флоу входа — email/password из Breeze.
-            $table->string('phone')->nullable()->unique();
+            // Auth — телефон + SMS-код для публичной части (ARCHITECTURE.md
+            // §2), см. PhoneOtpController. email/password остаются для
+            // входа в Filament-панель platform_admin — единственная роль,
+            // где пароль реально используется.
+            $table->string('phone')->unique();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();

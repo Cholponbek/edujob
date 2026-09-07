@@ -4,13 +4,15 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -23,6 +25,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'phone',
+        'phone_verified_at',
         'email',
         'password',
     ];
@@ -67,5 +70,14 @@ class User extends Authenticatable
     public function institutionRole(): ?string
     {
         return $this->institutions()->first()?->pivot?->role;
+    }
+
+    /**
+     * Filament-панель — только для platform_admin (модерация учреждений и
+     * т.д.), не для кандидатов/учреждений, которые входят через телефон+OTP.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_platform_admin;
     }
 }
