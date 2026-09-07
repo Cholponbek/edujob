@@ -113,6 +113,10 @@ Candidate (специалист в сфере образования) → Applic
 - [x] Телефон + SMS OTP guard (`PhoneOtpController`, `SmsGateway` за интерфейсом, драйвер `log` для dev/CI)
 - [x] Rate-limit на отправку кода (таблица `phone_otp_codes`, whitelist тестовых номеров через `TEST_PHONE_NUMBERS`)
 - [x] Роли: candidate / institution_director / institution_hr / institution_staff (через `institution_user.role`) / platform_admin (флаг `is_platform_admin`, вход через Filament email+password)
+- [x] Боевой SMS-провайдер: `NikitaSmsGateway` (smspro.nikita.kg, XML/HTTP-протокол, `driver=nikita`).
+      `NIKITA_SMS_TEST_MODE` включён везде, кроме production (шлюз валидирует
+      запрос, но не тарифицирует) — реальные пароль/логин вписываются в
+      .env на сервере, не в репозиторий
 
 ### ИИ
 - [ ] Job для скрининга откликов (Claude API, async, с ретраями) — вопросы с учётом предмета/уровня образования

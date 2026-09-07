@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Sms\LogSmsGateway;
+use App\Services\Sms\NikitaSmsGateway;
 use App\Services\Sms\SmsGateway;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -15,8 +16,10 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(SmsGateway::class, match (config('sms.driver')) {
-            // Реальный драйвер подключается сюда дополнительным match-веткам,
-            // без изменений в вызывающем коде (ARCHITECTURE.md §3, принцип #4).
+            'nikita' => NikitaSmsGateway::class,
+            // Следующий провайдер подключается сюда дополнительной
+            // match-веткой, без изменений в вызывающем коде
+            // (ARCHITECTURE.md §3, принцип #4).
             default => LogSmsGateway::class,
         });
     }
