@@ -1,0 +1,162 @@
+name: edujob
+
+# Один монолит, один compose — сознательно, без сплита фронт/BaaS между
+# разными хостинг-платформами (см. ARCHITECTURE.md, раздел "Принципиальные
+# решения" #1). Всё поднимается одной командой на своём VPS.
+
+x-app-env: &app-env
+  env_file: [.env]
+
+services:
+  # Код, vendor/ и собранный public/build запечены в образ на этапе build
+  # (docker/php/Dockerfile) — редеплой это git pull + docker compose up -d
+  # --build, не hot-reload.
+  app:
+    image: edujob-app:latest
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    <<: *app-env
+    entrypoint: /entrypoint.sh
+    volumes:
+      # Загруженные документы кандидатов (резюме, дипломы) и логотипы
+      # учреждений — единственное, что реально меняется в рантайме.
+      - candidate_documents:/var/www/html/storage/app/public
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [edujob]
+    restart: unless-stopped
+
+  # Горизонт — обязательный компонент с первого дня: все ИИ-вызовы
+  # (скрининг, парсинг резюме, генерация двуязычных резюме) идут только
+  # через очередь, никогда синхронно в HTTP-запросе.
+  horizon:
+    image: edujob-app:latest
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    <<: *app-env
+    command: php artisan horizon
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [edujob]
+    restart: unless-stopped
+
+  scheduler:
+    image: edujob-app:latest
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    <<: *app-env
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [edujob]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-edujob}
+      POSTGRES_USER: ${DB_USERNAME:-edujob_owner}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-edujob_owner} -d ${DB_DATABASE:-edujob}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [edujob]
+    # Порт наружу не публикуется по умолчанию.
+    # ports: ["127.0.0.1:5432:5432"]
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks: [edujob]
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [edujob]
+
+  minio-init:
+    image: minio/mc:latest
+    entrypoint: >
+      sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD} &&
+      mc mb --ignore-existing local/$${AWS_BUCKET:-edujob-documents}
+      "
+    <<: *app-env
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks: [edujob]
+    restart: "no"
+
+  # Caddy — отдельный контейнер, поэтому не может раздать public/build
+  # напрямую из образа app. Разовый контейнер копирует свежую статику из
+  # только что собранного образа app в volume, который caddy монтирует
+  # read-only.
+  static-sync:
+    image: edujob-app:latest
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    entrypoint: []
+    command: sh -c "rm -rf /shared/* && cp -r /var/www/html/public/. /shared/ && mkdir -p /shared/storage"
+    volumes:
+      - public_static:/shared
+    networks: [edujob]
+    restart: "no"
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - public_static:/var/www/html/public:ro
+      - candidate_documents:/var/www/html/public/storage:ro
+    depends_on:
+      app:
+        condition: service_started
+      static-sync:
+        condition: service_completed_successfully
+    networks: [edujob]
+
+networks:
+  edujob:
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  caddy_data:
+  caddy_config:
+  candidate_documents:
+  public_static:

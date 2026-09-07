@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: edujob_testing
+          POSTGRES_USER: edujob
+          POSTGRES_PASSWORD: edujob
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U edujob -d edujob_testing"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: npm ci && npm run build
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - run: php artisan key:generate
+
+      - name: Configure test database
+        run: |
+          sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=edujob_testing/' .env
+          sed -i 's/^DB_USERNAME=.*/DB_USERNAME=edujob/' .env
+          sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=edujob/' .env
+
+      - name: Pint (code style)
+        run: vendor/bin/pint --test
+
+      - name: Larastan (static analysis)
+        run: vendor/bin/phpstan analyse
+
+      - name: Tests
+        run: php artisan test
