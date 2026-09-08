@@ -44,16 +44,23 @@ vendor/bin/pint --test       # code style
 
 > **Известное ограничение среды разработки этой сессии:** в песочнице, где
 > собирался этот каркас, исходящий доступ к GitHub API был ограничен рамками
-> сессии, из-за чего `phpstan/phpstan` (только этот пакет — у него нет
-> git-источника, только zip-дистрибутив через GitHub API) не докачался. Сам
+> сессии, из-за чего `phpstan/phpstan` и `anthropic-ai/sdk` (у них нет
+> git-источника, только zip-дистрибутив через GitHub API) не докачались. Сам
 > `composer.json`/`composer.lock` корректны; на обычной машине или в CI с
 > обычным сетевым доступом `composer install` отработает без каких-либо
-> дополнительных действий.
+> дополнительных действий. Из-за этого ИИ-джобы (`App\Jobs\Ai\*`) в этой
+> сессии протестированы только с замоканным `App\Services\Ai\ClaudeClient`
+> (`tests/Feature/Jobs/Ai`) — реальный вызов `Anthropic\Client` не
+> выполнялся ни разу; проверить его стоит первым делом на обычной машине
+> с `ANTHROPIC_API_KEY`.
 
 ## Структура
 
 - `ARCHITECTURE.md` — домен, стек, killer-фичи под рынок КР, принятые решения, чеклист.
-- `app/Models` — Institution, Candidate, StaffRequest, Application, HiringCampaign.
+- `app/Models` — Institution, Candidate, StaffRequest, Application, HiringCampaign, CandidateRecommendation, AiUsageLog.
+- `app/Jobs/Ai` — ИИ-джобы (скрининг, парсинг резюме, генерация резюме, рекомендации).
+- `app/Services/Ai/ClaudeClient` — единая точка вызова Anthropic API (модель, цена, логирование стоимости).
+- `app/Services/Sms` — SMS-шлюз за интерфейсом (`log` для dev/CI, `nikita` — smspro.nikita.kg).
 - `app/Filament/Resources` — админка/бэк-офис (модерация учреждений и т.д.).
 - `database/migrations` — схема ядра домена.
 - `docker/` — `Dockerfile` (php-fpm) + `Caddyfile`.
@@ -63,6 +70,7 @@ vendor/bin/pint --test       # code style
 Каркас проекта: Laravel + Inertia/Vue + Filament + Horizon установлены,
 ядро доменной модели (учреждения, роли director/HR/staff, кандидаты,
 вакансии, отклики, пакетный набор) реализовано миграциями и моделями.
-Ещё не реализовано (см. чеклист в ARCHITECTURE.md): auth по телефону/SMS,
-ИИ-джобы (скрининг, парсинг резюме, двуязычная генерация), Telegram-бот,
-биллинг.
+Auth по телефону/SMS и ИИ-джобы (скрининг, парсинг резюме, двуязычная
+генерация, рекомендации) реализованы. Ещё не реализовано (см. чеклист в
+ARCHITECTURE.md): Telegram-бот, биллинг, парсинг DOC/DOCX-резюме,
+кандидат-facing UI для новых точек входа (сейчас только backend-роуты).

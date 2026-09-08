@@ -46,4 +46,9 @@ class StaffRequest extends Model
     {
         return $this->hasMany(Application::class);
     }
+
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(CandidateRecommendation::class);
+    }
 }

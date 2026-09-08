@@ -12,12 +12,14 @@ class Application extends Model
 
     protected $fillable = [
         'staff_request_id', 'candidate_id', 'status',
-        'screening_verdict', 'screening_match_percent', 'screening_answers', 'screened_at',
+        'screening_questions', 'screening_verdict', 'screening_match_percent',
+        'screening_answers', 'screened_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'screening_questions' => 'array',
             'screening_answers' => 'array',
             'screened_at' => 'datetime',
         ];

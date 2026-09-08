@@ -16,6 +16,7 @@ class Candidate extends Model
         'diploma_document_path', 'teaching_category', 'category_document_path',
         'relocation_ready', 'relocation_conditions',
         'employment_type', 'desired_stake_fraction', 'bio',
+        'resume_source_path', 'resume_text_ru', 'resume_text_ky',
     ];
 
     protected function casts(): array
@@ -35,6 +36,11 @@ class Candidate extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
+    }
+
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(CandidateRecommendation::class);
     }
 
     public function hasRequiredDocuments(): bool

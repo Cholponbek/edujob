@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\CandidateResumeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +23,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::post('/applications', [ApplicationController::class, 'store'])->name('applications.store');
+    Route::post('/applications/{application}/answers', [ApplicationController::class, 'submitAnswers'])->name('applications.answers');
+
+    Route::post('/candidate/resume/upload', [CandidateResumeController::class, 'uploadResume'])->name('candidate.resume.upload');
+    Route::post('/candidate/resume/generate', [CandidateResumeController::class, 'generateResume'])->name('candidate.resume.generate');
+    Route::post('/candidate/recommendations/refresh', [CandidateResumeController::class, 'refreshRecommendations'])->name('candidate.recommendations.refresh');
 });
 
 require __DIR__.'/auth.php';
