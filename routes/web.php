@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\CandidateResumeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,6 +31,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/candidate/resume/upload', [CandidateResumeController::class, 'uploadResume'])->name('candidate.resume.upload');
     Route::post('/candidate/resume/generate', [CandidateResumeController::class, 'generateResume'])->name('candidate.resume.generate');
     Route::post('/candidate/recommendations/refresh', [CandidateResumeController::class, 'refreshRecommendations'])->name('candidate.recommendations.refresh');
+
+    Route::post('/institution/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
 });
 
 require __DIR__.'/auth.php';

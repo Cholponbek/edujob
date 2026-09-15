@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Plan;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -28,5 +29,19 @@ class DatabaseSeeder extends Seeder
                 'is_platform_admin' => true,
             ]
         );
+
+        // Плейсхолдер-тарифы — цены и названия нужно проверить и
+        // отредактировать через Filament (PlanResource) перед запуском,
+        // это не финальное решение по монетизации.
+        foreach ([
+            ['name' => 'Старт', 'price' => 990],
+            ['name' => 'Бизнес', 'price' => 2900],
+            ['name' => 'Про', 'price' => 5900],
+        ] as $plan) {
+            Plan::firstOrCreate(
+                ['name' => $plan['name']],
+                ['price' => $plan['price'], 'currency' => 'KGS', 'billing_period_days' => 30, 'is_active' => true]
+            );
+        }
     }
 }

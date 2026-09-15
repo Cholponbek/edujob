@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\Billing\ManualInvoiceGateway;
+use App\Services\Billing\PaymentGatewayInterface;
 use App\Services\Sms\LogSmsGateway;
 use App\Services\Sms\NikitaSmsGateway;
 use App\Services\Sms\SmsGateway;
@@ -21,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
             // match-веткой, без изменений в вызывающем коде
             // (ARCHITECTURE.md §3, принцип #4).
             default => LogSmsGateway::class,
+        });
+
+        $this->app->bind(PaymentGatewayInterface::class, match (config('billing.driver')) {
+            // mbank/elsom подключаются сюда так же, отдельной веткой.
+            default => ManualInvoiceGateway::class,
         });
     }
 
