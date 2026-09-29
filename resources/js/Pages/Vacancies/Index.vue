@@ -4,10 +4,11 @@ import Container from '@/Components/ui/Container.vue';
 import Card from '@/Components/ui/Card.vue';
 import Badge from '@/Components/ui/Badge.vue';
 import SelectMenu from '@/Components/ui/SelectMenu.vue';
+import InstitutionAvatar from '@/Components/ui/InstitutionAvatar.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { reactive, watch } from 'vue';
-import { MapPinIcon, AcademicCapIcon, BriefcaseIcon } from '@heroicons/vue/24/outline';
-import { EDUCATION_LEVEL_LABELS, EMPLOYMENT_TYPE_LABELS, educationLevelOptions, employmentTypeOptions } from '@/lib/labels';
+import { MagnifyingGlassIcon, MapPinIcon, BriefcaseIcon } from '@heroicons/vue/24/outline';
+import { EMPLOYMENT_TYPE_LABELS, educationLevelOptions, employmentTypeOptions } from '@/lib/labels';
 
 const props = defineProps({
     staffRequests: { type: Object, required: true },
@@ -16,6 +17,7 @@ const props = defineProps({
 });
 
 const form = reactive({
+    q: props.filters.q || '',
     subject: props.filters.subject || null,
     region: props.filters.region || null,
     education_level: props.filters.education_level || null,
@@ -23,19 +25,28 @@ const form = reactive({
 });
 
 let firstRun = true;
-watch(form, () => {
-    if (firstRun) {
-        firstRun = false;
-        return;
-    }
-    router.get('/vacancies', form, { preserveState: true, replace: true, preserveScroll: true });
-});
+watch(
+    () => ({ ...form }),
+    () => {
+        if (firstRun) {
+            firstRun = false;
+            return;
+        }
+        router.get('/vacancies', form, { preserveState: true, replace: true, preserveScroll: true });
+    },
+    { deep: true }
+);
 
 function resetFilters() {
+    form.q = '';
     form.subject = null;
     form.region = null;
     form.education_level = null;
     form.employment_type = null;
+}
+
+function toggleSubject(subject) {
+    form.subject = form.subject === subject ? null : subject;
 }
 </script>
 
@@ -44,22 +55,37 @@ function resetFilters() {
 
     <PublicLayout>
         <Container class="py-12">
-            <div class="mb-10">
+            <div class="mb-8">
                 <h1 class="text-3xl font-extrabold tracking-tight text-ink-950">Вакансии в сфере образования</h1>
                 <p class="mt-2 text-ink-500">{{ staffRequests.total }} открытых вакансий от учреждений Кыргызстана</p>
             </div>
 
-            <div class="grid gap-8 lg:grid-cols-[260px_1fr]">
+            <div class="mb-6 flex items-center gap-2 rounded-2xl bg-white p-2 shadow-soft ring-1 ring-ink-100">
+                <MagnifyingGlassIcon class="ml-2 h-5 w-5 shrink-0 text-ink-400" />
+                <input
+                    v-model="form.q"
+                    type="text"
+                    placeholder="Учитель математики, психолог…"
+                    class="w-full border-0 bg-transparent py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-0"
+                />
+            </div>
+
+            <div v-if="filterOptions.subjects.length > 0" class="mb-8 flex flex-wrap gap-2">
+                <button
+                    v-for="subject in filterOptions.subjects.slice(0, 10)"
+                    :key="subject"
+                    type="button"
+                    class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                    :class="form.subject === subject ? 'bg-ink-950 text-white' : 'bg-white text-ink-600 ring-1 ring-ink-200 hover:bg-ink-100'"
+                    @click="toggleSubject(subject)"
+                >
+                    {{ subject }}
+                </button>
+            </div>
+
+            <div class="grid gap-8 lg:grid-cols-[240px_1fr]">
                 <aside class="space-y-4">
                     <Card class="space-y-4">
-                        <div>
-                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-400">Предмет</label>
-                            <SelectMenu
-                                v-model="form.subject"
-                                :options="filterOptions.subjects.map((s) => ({ value: s, label: s }))"
-                                placeholder="Любой предмет"
-                            />
-                        </div>
                         <div>
                             <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-400">Регион</label>
                             <SelectMenu
@@ -99,30 +125,27 @@ function resetFilters() {
                             class="block"
                         >
                             <Card hoverable class="h-full">
-                                <div class="flex items-start justify-between gap-2">
-                                    <h3 class="font-bold text-ink-950">{{ sr.title }}</h3>
+                                <div class="flex items-start gap-3">
+                                    <InstitutionAvatar :name="sr.institution.name" size="sm" />
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-sm font-semibold text-ink-900">{{ sr.institution.name }}</p>
+                                        <p class="flex items-center gap-1 text-xs text-ink-400">
+                                            <MapPinIcon class="h-3.5 w-3.5" /> {{ sr.institution.region }}
+                                        </p>
+                                    </div>
                                     <Badge v-if="sr.is_next_school_year" tone="warning">на след. год</Badge>
                                 </div>
-                                <p class="mt-1 text-sm text-ink-500">{{ sr.institution.name }}</p>
 
-                                <dl class="mt-4 space-y-1.5 text-sm text-ink-600">
-                                    <div class="flex items-center gap-2">
-                                        <MapPinIcon class="h-4 w-4 shrink-0 text-ink-400" />
-                                        {{ sr.institution.region }}
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <AcademicCapIcon class="h-4 w-4 shrink-0 text-ink-400" />
-                                        {{ EDUCATION_LEVEL_LABELS[sr.education_level] }}
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <BriefcaseIcon class="h-4 w-4 shrink-0 text-ink-400" />
-                                        {{ EMPLOYMENT_TYPE_LABELS[sr.employment_type] }}
-                                    </div>
-                                </dl>
+                                <h3 class="mt-4 font-bold leading-snug text-ink-950">{{ sr.title }}</h3>
 
-                                <div v-if="sr.salary_from || sr.salary_to" class="mt-4 font-semibold text-ink-950">
+                                <p class="mt-2 flex items-center gap-1.5 text-sm text-ink-500">
+                                    <BriefcaseIcon class="h-4 w-4 shrink-0 text-ink-400" />
+                                    {{ EMPLOYMENT_TYPE_LABELS[sr.employment_type] }}
+                                </p>
+
+                                <p v-if="sr.salary_from || sr.salary_to" class="mt-3 font-semibold text-emerald-600">
                                     {{ sr.salary_from ?? '—' }}–{{ sr.salary_to ?? '—' }} сом
-                                </div>
+                                </p>
                             </Card>
                         </Link>
                     </div>

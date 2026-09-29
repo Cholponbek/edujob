@@ -16,8 +16,8 @@ const props = defineProps({
 });
 
 const variantClasses = {
-    primary: 'bg-coral-500 text-white shadow-soft hover:bg-coral-600 focus-visible:outline-coral-500',
-    secondary: 'bg-ink-900 text-white shadow-soft hover:bg-ink-800 focus-visible:outline-ink-900',
+    primary: 'bg-violet-600 text-white shadow-soft hover:bg-violet-700 focus-visible:outline-violet-600',
+    secondary: 'bg-ink-950 text-white shadow-soft hover:bg-ink-800 focus-visible:outline-ink-900',
     outline: 'border border-ink-200 text-ink-900 hover:bg-ink-50 focus-visible:outline-ink-400',
     ghost: 'text-ink-700 hover:bg-ink-50 focus-visible:outline-ink-400',
 };

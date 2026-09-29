@@ -11,7 +11,7 @@ const props = defineProps({
 
 const toneClasses = {
     neutral: 'bg-ink-100 text-ink-700',
-    brand: 'bg-ink-900 text-white',
+    brand: 'bg-violet-100 text-violet-700',
     success: 'bg-emerald-100 text-emerald-800',
     warning: 'bg-amber-100 text-amber-800',
     danger: 'bg-rose-100 text-rose-800',

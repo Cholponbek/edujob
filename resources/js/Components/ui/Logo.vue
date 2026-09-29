@@ -13,6 +13,6 @@ const sizeClasses = {
 
 <template>
     <span class="inline-flex items-center font-extrabold tracking-tight" :class="sizeClasses[size]">
-        <span :class="inverted ? 'text-white' : 'text-ink-900'">Edu</span><span class="text-coral-500">Job</span>
+        <span :class="inverted ? 'text-white' : 'text-ink-950'">Edu</span><span class="text-violet-600">Job</span>
     </span>
 </template>

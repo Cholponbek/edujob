@@ -4,8 +4,11 @@ import Container from '@/Components/ui/Container.vue';
 import Button from '@/Components/ui/Button.vue';
 import Card from '@/Components/ui/Card.vue';
 import Badge from '@/Components/ui/Badge.vue';
-import { Head } from '@inertiajs/vue3';
+import InstitutionAvatar from '@/Components/ui/InstitutionAvatar.vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import {
+    MagnifyingGlassIcon,
     SparklesIcon,
     BuildingLibraryIcon,
     UserGroupIcon,
@@ -13,9 +16,36 @@ import {
     MapIcon,
     ClockIcon,
 } from '@heroicons/vue/24/outline';
+import { EMPLOYMENT_TYPE_LABELS } from '@/lib/labels';
 
-defineProps({
-    stats: { type: Object, default: () => ({ vacancies: 0, institutions: 0 }) },
+const props = defineProps({
+    stats: { type: Object, default: () => ({ vacancies: 0, institutions: 0, regions: 0 }) },
+    featuredVacancies: { type: Array, default: () => [] },
+});
+
+const query = ref('');
+
+function search() {
+    router.get('/vacancies', query.value ? { q: query.value } : {});
+}
+
+const activeSubject = ref(null);
+
+const topSubjects = computed(() => {
+    const counts = {};
+    props.featuredVacancies.forEach((v) => {
+        if (v.subject) counts[v.subject] = (counts[v.subject] || 0) + 1;
+    });
+    return Object.keys(counts)
+        .sort((a, b) => counts[b] - counts[a])
+        .slice(0, 6);
+});
+
+const visibleVacancies = computed(() => {
+    const list = activeSubject.value
+        ? props.featuredVacancies.filter((v) => v.subject === activeSubject.value)
+        : props.featuredVacancies;
+    return list.slice(0, 8);
 });
 
 const steps = [
@@ -57,61 +87,110 @@ const features = [
 
     <PublicLayout>
         <!-- Hero -->
-        <section class="relative overflow-hidden bg-ink-950">
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(240,89,42,0.18),_transparent_55%)]" />
-            <Container class="relative grid gap-12 py-20 sm:py-28 lg:grid-cols-2 lg:items-center lg:py-32">
-                <div>
-                    <Badge tone="warning" class="!bg-coral-500/15 !text-coral-300">
-                        <SparklesIcon class="h-3.5 w-3.5" /> ИИ-подбор для сферы образования
-                    </Badge>
+        <section class="relative overflow-hidden bg-white">
+            <!-- decorative shapes -->
+            <div class="pointer-events-none absolute inset-0 hidden lg:block">
+                <div class="absolute left-[8%] top-24 h-10 w-10 rounded-lg bg-violet-100" />
+                <div class="absolute left-[14%] top-64 h-2 w-16 rounded-full bg-coral-300" />
+                <div class="absolute right-[10%] top-16 h-2 w-2.5 rounded-full bg-amber-400" />
+                <div class="absolute right-[16%] top-28 h-16 w-3 rounded-full bg-violet-200" />
+                <div class="absolute right-[9%] top-72 h-20 w-3 rounded-full bg-sky-300" />
+                <div class="absolute left-[6%] top-[26rem] h-16 w-16 rounded-full border-8 border-emerald-100" />
+            </div>
 
-                    <h1 class="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
-                        Кадры для школ и садов —
-                        <span class="text-coral-400">без недель ожидания</span>
-                    </h1>
+            <Container class="relative py-20 text-center sm:py-28">
+                <Badge tone="brand" class="!bg-violet-100 !text-violet-700">
+                    <SparklesIcon class="h-3.5 w-3.5" /> ИИ-подбор для сферы образования
+                </Badge>
 
-                    <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-300">
-                        EduJob подбирает педагогов для учреждений Кыргызстана с помощью ИИ-скрининга,
-                        а кандидатам помогает собрать профессиональное резюме за считаные минуты — бесплатно.
-                    </p>
+                <h1 class="mx-auto mt-8 max-w-3xl text-5xl font-extrabold leading-[1.1] tracking-tight text-ink-950 sm:text-6xl">
+                    Помогаем
+                    <span class="text-violet-600">найти</span>
+                    работу в образовании
+                </h1>
 
-                    <div class="mt-10 flex flex-col gap-3 sm:flex-row">
-                        <Button as="a" href="/login" size="lg">Создать резюме бесплатно</Button>
-                        <Button as="a" href="/vacancies" variant="outline" size="lg" class="!border-ink-700 !text-white hover:!bg-white/5">
-                            Смотреть вакансии
-                        </Button>
+                <p class="mx-auto mt-6 max-w-xl text-lg text-ink-500">
+                    Бесплатное ИИ-резюме для кандидатов и ИИ-скрининг откликов для школ и садов Кыргызстана.
+                </p>
+
+                <form class="mx-auto mt-10 flex max-w-xl overflow-hidden rounded-2xl bg-white p-2 shadow-card ring-1 ring-ink-100" @submit.prevent="search">
+                    <div class="flex flex-1 items-center gap-2 px-3">
+                        <MagnifyingGlassIcon class="h-5 w-5 shrink-0 text-ink-400" />
+                        <input
+                            v-model="query"
+                            type="text"
+                            placeholder="Учитель математики, психолог, воспитатель…"
+                            class="w-full border-0 bg-transparent py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-0"
+                        />
                     </div>
+                    <Button type="submit">Найти</Button>
+                </form>
 
-                    <dl class="mt-14 grid max-w-md grid-cols-2 gap-6 border-t border-white/10 pt-8">
-                        <div>
-                            <dt class="text-sm text-ink-400">Открытых вакансий</dt>
-                            <dd class="mt-1 text-3xl font-bold text-white">{{ stats.vacancies }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-sm text-ink-400">Учреждений на платформе</dt>
-                            <dd class="mt-1 text-3xl font-bold text-white">{{ stats.institutions }}</dd>
-                        </div>
-                    </dl>
+                <dl class="mx-auto mt-16 grid max-w-lg grid-cols-3 gap-6">
+                    <div>
+                        <dd class="text-3xl font-extrabold text-ink-950">{{ stats.vacancies }}</dd>
+                        <dt class="mt-1 text-sm text-ink-500">вакансий</dt>
+                    </div>
+                    <div>
+                        <dd class="text-3xl font-extrabold text-ink-950">{{ stats.institutions }}</dd>
+                        <dt class="mt-1 text-sm text-ink-500">учреждений</dt>
+                    </div>
+                    <div>
+                        <dd class="text-3xl font-extrabold text-ink-950">{{ stats.regions }}</dd>
+                        <dt class="mt-1 text-sm text-ink-500">регионов</dt>
+                    </div>
+                </dl>
+            </Container>
+        </section>
+
+        <!-- Featured vacancies -->
+        <section v-if="featuredVacancies.length > 0" class="border-t border-ink-100 bg-ink-50/50 py-20">
+            <Container>
+                <h2 class="text-center text-3xl font-extrabold tracking-tight text-ink-950">Свежие вакансии</h2>
+
+                <div v-if="topSubjects.length > 0" class="mt-8 flex flex-wrap justify-center gap-2">
+                    <button
+                        class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                        :class="activeSubject === null ? 'bg-ink-950 text-white' : 'bg-white text-ink-600 ring-1 ring-ink-200 hover:bg-ink-100'"
+                        @click="activeSubject = null"
+                    >
+                        Все
+                    </button>
+                    <button
+                        v-for="subject in topSubjects"
+                        :key="subject"
+                        class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                        :class="activeSubject === subject ? 'bg-ink-950 text-white' : 'bg-white text-ink-600 ring-1 ring-ink-200 hover:bg-ink-100'"
+                        @click="activeSubject = subject"
+                    >
+                        {{ subject }}
+                    </button>
                 </div>
 
-                <div class="relative hidden lg:block">
-                    <div class="absolute -inset-8 rounded-[2rem] bg-gradient-to-br from-coral-500/20 to-transparent blur-2xl" />
-                    <Card class="relative !bg-white/95 backdrop-blur">
-                        <div class="flex items-center justify-between">
-                            <Badge tone="success">ИИ-скрининг завершён</Badge>
-                            <span class="text-sm font-semibold text-ink-900">92%</span>
-                        </div>
-                        <h3 class="mt-4 text-lg font-bold text-ink-900">Учитель математики</h3>
-                        <p class="text-sm text-ink-500">Школа №5, г. Бишкек · полная ставка</p>
-                        <div class="mt-4 rounded-xl bg-ink-50 p-4 text-sm text-ink-600">
-                            «Кандидат уверенно ответил на вопросы по методике преподавания
-                            алгебры для 8–9 классов, есть опыт подготовки к ОРТ.»
-                        </div>
-                        <div class="mt-4 flex gap-2">
-                            <Badge>Высшая категория</Badge>
-                            <Badge>Готов к переезду</Badge>
-                        </div>
-                    </Card>
+                <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <Link
+                        v-for="v in visibleVacancies"
+                        :key="v.id"
+                        :href="`/vacancies/${v.id}`"
+                    >
+                        <Card hoverable class="h-full">
+                            <div class="flex items-start gap-3">
+                                <InstitutionAvatar :name="v.institution.name" size="sm" />
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold text-ink-900">{{ v.institution.name }}</p>
+                                    <p class="text-xs text-ink-400">{{ EMPLOYMENT_TYPE_LABELS[v.employment_type] }}</p>
+                                </div>
+                            </div>
+                            <h3 class="mt-4 font-bold leading-snug text-ink-950">{{ v.title }}</h3>
+                            <p v-if="v.salary_from || v.salary_to" class="mt-3 font-semibold text-emerald-600">
+                                {{ v.salary_from ? `от ${v.salary_from}` : `до ${v.salary_to}` }} сом
+                            </p>
+                        </Card>
+                    </Link>
+                </div>
+
+                <div class="mt-10 text-center">
+                    <Button as="a" href="/vacancies" variant="secondary">Все вакансии →</Button>
                 </div>
             </Container>
         </section>
@@ -128,7 +207,7 @@ const features = [
 
                 <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     <Card hoverable>
-                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-coral-50 text-coral-500">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
                             <UserGroupIcon class="h-6 w-6" />
                         </div>
                         <h3 class="mt-5 text-lg font-bold text-ink-950">Для кандидатов</h3>
@@ -183,7 +262,7 @@ const features = [
             <Container>
                 <div class="grid gap-10 lg:grid-cols-3">
                     <div v-for="feature in features" :key="feature.title" class="flex gap-4">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-white">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ink-950 text-white">
                             <component :is="feature.icon" class="h-5 w-5" />
                         </div>
                         <div>

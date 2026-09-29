@@ -12,11 +12,14 @@ class VacancyController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = $request->only(['subject', 'region', 'education_level', 'employment_type']);
+        $filters = $request->only(['q', 'subject', 'region', 'education_level', 'employment_type']);
 
         $staffRequests = StaffRequest::query()
             ->with('institution')
             ->where('status', 'published')
+            ->when($filters['q'] ?? null, fn ($q, $v) => $q->where(
+                fn ($wq) => $wq->where('title', 'ilike', "%{$v}%")->orWhere('subject', 'ilike', "%{$v}%")
+            ))
             ->when($filters['subject'] ?? null, fn ($q, $v) => $q->where('subject', $v))
             ->when($filters['education_level'] ?? null, fn ($q, $v) => $q->where('education_level', $v))
             ->when($filters['employment_type'] ?? null, fn ($q, $v) => $q->where('employment_type', $v))

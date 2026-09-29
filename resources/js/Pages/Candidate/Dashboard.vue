@@ -73,7 +73,7 @@ const VERDICT_TONES = { green: 'success', yellow: 'warning', red: 'danger' };
             </div>
 
             <div class="mt-4 h-2 w-full max-w-md overflow-hidden rounded-full bg-ink-100">
-                <div class="h-full rounded-full bg-coral-500 transition-all" :style="{ width: `${profileCompletion}%` }" />
+                <div class="h-full rounded-full bg-violet-600 transition-all" :style="{ width: `${profileCompletion}%` }" />
             </div>
 
             <div class="mt-10 grid gap-6 lg:grid-cols-3">
@@ -81,7 +81,7 @@ const VERDICT_TONES = { green: 'success', yellow: 'warning', red: 'danger' };
                 <Card class="lg:col-span-2">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold text-ink-950">Резюме</h2>
-                        <SparklesIcon class="h-5 w-5 text-coral-500" />
+                        <SparklesIcon class="h-5 w-5 text-violet-600" />
                     </div>
 
                     <div v-if="candidate?.resume_text_ru || candidate?.resume_text_ky" class="mt-4">
@@ -147,12 +147,12 @@ const VERDICT_TONES = { green: 'success', yellow: 'warning', red: 'danger' };
                     <h2 class="text-lg font-bold text-ink-950">Мои отклики</h2>
                     <p v-if="applications.length === 0" class="mt-3 text-sm text-ink-500">
                         Вы пока никуда не откликались — самое время
-                        <Link href="/vacancies" class="font-medium text-coral-600 underline">посмотреть вакансии</Link>.
+                        <Link href="/vacancies" class="font-medium text-violet-600 underline">посмотреть вакансии</Link>.
                     </p>
                     <ul v-else class="mt-4 space-y-4">
                         <li v-for="app in applications" :key="app.id" class="flex items-start justify-between gap-3 border-b border-ink-100 pb-4 last:border-0 last:pb-0">
                             <div>
-                                <Link :href="`/vacancies/${app.staff_request.id}`" class="font-medium text-ink-900 hover:text-coral-600">
+                                <Link :href="`/vacancies/${app.staff_request.id}`" class="font-medium text-ink-900 hover:text-violet-600">
                                     {{ app.staff_request.title }}
                                 </Link>
                                 <p class="text-sm text-ink-500">{{ app.staff_request.institution.name }}</p>
@@ -181,7 +181,7 @@ const VERDICT_TONES = { green: 'success', yellow: 'warning', red: 'danger' };
                     <ul v-else class="mt-4 space-y-4">
                         <li v-for="rec in recommendations" :key="rec.id" class="border-b border-ink-100 pb-4 last:border-0 last:pb-0">
                             <div class="flex items-start justify-between gap-3">
-                                <Link :href="`/vacancies/${rec.staff_request.id}`" class="font-medium text-ink-900 hover:text-coral-600">
+                                <Link :href="`/vacancies/${rec.staff_request.id}`" class="font-medium text-ink-900 hover:text-violet-600">
                                     {{ rec.staff_request.title }}
                                 </Link>
                                 <Badge tone="brand">{{ rec.score }}%</Badge>

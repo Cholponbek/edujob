@@ -4,8 +4,9 @@ import Container from '@/Components/ui/Container.vue';
 import Card from '@/Components/ui/Card.vue';
 import Badge from '@/Components/ui/Badge.vue';
 import Button from '@/Components/ui/Button.vue';
+import InstitutionAvatar from '@/Components/ui/InstitutionAvatar.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { MapPinIcon, AcademicCapIcon, BriefcaseIcon, BuildingLibraryIcon } from '@heroicons/vue/24/outline';
+import { MapPinIcon, AcademicCapIcon, BriefcaseIcon } from '@heroicons/vue/24/outline';
 import { EDUCATION_LEVEL_LABELS, EMPLOYMENT_TYPE_LABELS, INSTITUTION_TYPE_LABELS } from '@/lib/labels';
 
 const props = defineProps({
@@ -40,9 +41,10 @@ function apply() {
                     </div>
 
                     <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-ink-950">{{ staffRequest.title }}</h1>
-                    <p class="mt-2 flex items-center gap-2 text-ink-500">
-                        <BuildingLibraryIcon class="h-5 w-5" /> {{ staffRequest.institution.name }}
-                    </p>
+                    <div class="mt-3 flex items-center gap-3">
+                        <InstitutionAvatar :name="staffRequest.institution.name" size="sm" />
+                        <span class="font-medium text-ink-700">{{ staffRequest.institution.name }}</span>
+                    </div>
 
                     <dl class="mt-8 grid grid-cols-2 gap-6 border-y border-ink-100 py-6 sm:grid-cols-4">
                         <div>
@@ -76,7 +78,7 @@ function apply() {
 
                 <div>
                     <Card class="sticky top-24">
-                        <div v-if="staffRequest.salary_from || staffRequest.salary_to" class="text-2xl font-extrabold text-ink-950">
+                        <div v-if="staffRequest.salary_from || staffRequest.salary_to" class="text-2xl font-extrabold text-emerald-600">
                             {{ staffRequest.salary_from ?? '—' }}–{{ staffRequest.salary_to ?? '—' }} сом
                         </div>
                         <p class="mt-1 text-sm text-ink-500">в месяц, до вычета налогов</p>
