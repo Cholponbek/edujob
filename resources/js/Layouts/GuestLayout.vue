@@ -1,22 +1,33 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import Logo from '@/Components/ui/Logo.vue';
 import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div
-        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0 dark:bg-gray-900"
-    >
-        <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
+    <div class="grid min-h-screen lg:grid-cols-2">
+        <div class="relative hidden flex-col justify-between overflow-hidden bg-ink-950 p-12 text-white lg:flex">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(240,89,42,0.18),_transparent_55%)]" />
+            <Link href="/" class="relative">
+                <Logo inverted size="lg" />
             </Link>
+            <div class="relative">
+                <p class="text-2xl font-semibold leading-snug text-white">
+                    «Подбор кадров для школ Кыргызстана — быстрее, чем раньше.»
+                </p>
+                <p class="mt-4 text-sm text-ink-400">
+                    ИИ-скрининг откликов и бесплатное резюме за 5 минут для кандидатов.
+                </p>
+            </div>
         </div>
 
-        <div
-            class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg dark:bg-gray-800"
-        >
-            <slot />
+        <div class="flex flex-col items-center justify-center bg-white px-6 py-12">
+            <Link href="/" class="mb-8 lg:hidden">
+                <Logo size="lg" />
+            </Link>
+
+            <div class="w-full max-w-sm">
+                <slot />
+            </div>
         </div>
     </div>
 </template>

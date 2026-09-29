@@ -1,26 +1,22 @@
 <?php
 
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\CandidateDashboardController;
 use App\Http\Controllers\CandidateResumeController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Institution\ApplicationController as InstitutionApplicationController;
 use App\Http\Controllers\Institution\StaffRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\VacancyController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware('auth')->name('dashboard');
+Route::get('/vacancies', [VacancyController::class, 'index'])->name('vacancies.index');
+Route::get('/vacancies/{staffRequest}', [VacancyController::class, 'show'])->name('vacancies.show');
+
+Route::get('/dashboard', [CandidateDashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

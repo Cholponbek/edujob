@@ -1,9 +1,9 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import Input from '@/Components/ui/Input.vue';
+import Button from '@/Components/ui/Button.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref, watchEffect } from 'vue';
 
@@ -46,72 +46,61 @@ const changePhone = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Вход" />
+        <Head title="Вход — EduJob" />
 
-        <form v-if="step === 'phone'" @submit.prevent="requestCode">
+        <h1 class="text-2xl font-extrabold tracking-tight text-ink-950">
+            {{ step === 'phone' ? 'Вход или регистрация' : 'Введите код' }}
+        </h1>
+        <p class="mt-2 text-sm text-ink-500">
+            {{ step === 'phone'
+                ? 'По номеру телефона — без пароля.'
+                : `Код отправлен на ${form.phone}.` }}
+        </p>
+
+        <form v-if="step === 'phone'" class="mt-8 space-y-5" @submit.prevent="requestCode">
             <div>
                 <InputLabel for="phone" value="Номер телефона" />
-
-                <TextInput
+                <Input
                     id="phone"
                     type="tel"
-                    class="mt-1 block w-full"
+                    class="mt-1.5"
                     v-model="form.phone"
                     placeholder="+996 5XX XXXXXX"
                     required
                     autofocus
                     autocomplete="tel"
                 />
-
                 <InputError class="mt-2" :message="form.errors.phone" />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Получить код
-                </PrimaryButton>
-            </div>
+            <Button type="submit" size="lg" class="w-full" :disabled="form.processing">
+                Получить код
+            </Button>
         </form>
 
-        <form v-else @submit.prevent="verifyCode">
-            <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                Код отправлен на {{ form.phone }}.
-                <button
-                    type="button"
-                    class="underline"
-                    @click="changePhone"
-                >
-                    Изменить номер
-                </button>
-            </p>
-
+        <form v-else class="mt-8 space-y-5" @submit.prevent="verifyCode">
             <div>
-                <InputLabel for="code" value="Код из SMS" />
-
-                <TextInput
+                <div class="flex items-center justify-between">
+                    <InputLabel for="code" value="Код из SMS" />
+                    <button type="button" class="text-sm font-medium text-ink-500 underline underline-offset-2 hover:text-ink-900" @click="changePhone">
+                        Изменить номер
+                    </button>
+                </div>
+                <Input
                     id="code"
                     type="text"
                     inputmode="numeric"
-                    class="mt-1 block w-full"
+                    class="mt-1.5 tracking-[0.3em]"
                     v-model="form.code"
                     required
                     autofocus
                 />
-
                 <InputError class="mt-2" :message="form.errors.code" />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Войти
-                </PrimaryButton>
-            </div>
+            <Button type="submit" size="lg" class="w-full" :disabled="form.processing">
+                Войти
+            </Button>
         </form>
     </GuestLayout>
 </template>

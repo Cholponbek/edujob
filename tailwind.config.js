@@ -13,7 +13,41 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Plus Jakarta Sans', ...defaultTheme.fontFamily.sans],
+            },
+            colors: {
+                // Ink — глубокий сине-стальной, институциональное доверие
+                // (не generic Tailwind indigo/violet).
+                ink: {
+                    50: '#EFF3FB',
+                    100: '#DCE5F5',
+                    200: '#B9CCEB',
+                    300: '#8FAEDD',
+                    400: '#5F8BC9',
+                    500: '#3D6CAE',
+                    600: '#2C5590',
+                    700: '#234374',
+                    800: '#1C3660',
+                    900: '#16283F',
+                    950: '#0D1826',
+                },
+                // Coral — тёплый акцент для CTA/важных действий.
+                coral: {
+                    50: '#FFF3EE',
+                    100: '#FFE4D6',
+                    200: '#FFC7AD',
+                    300: '#FFA179',
+                    400: '#FF7A47',
+                    500: '#F0592A',
+                    600: '#D2401A',
+                    700: '#AC3216',
+                    800: '#862919',
+                    900: '#6E2518',
+                },
+            },
+            boxShadow: {
+                soft: '0 1px 2px 0 rgb(13 24 38 / 0.04), 0 4px 16px -4px rgb(13 24 38 / 0.08)',
+                card: '0 1px 3px 0 rgb(13 24 38 / 0.06), 0 8px 24px -8px rgb(13 24 38 / 0.12)',
             },
         },
     },
