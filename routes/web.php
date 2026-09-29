@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\CandidateResumeController;
+use App\Http\Controllers\Institution\ApplicationController as InstitutionApplicationController;
+use App\Http\Controllers\Institution\StaffRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Foundation\Application;
@@ -33,6 +35,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/candidate/recommendations/refresh', [CandidateResumeController::class, 'refreshRecommendations'])->name('candidate.recommendations.refresh');
 
     Route::post('/institution/subscriptions', [SubscriptionController::class, 'store'])->name('subscriptions.store');
+
+    Route::get('/institution/staff-requests', [StaffRequestController::class, 'index'])->name('institution.staff-requests.index');
+    Route::post('/institution/staff-requests', [StaffRequestController::class, 'store'])->name('institution.staff-requests.store');
+    Route::patch('/institution/staff-requests/{staffRequest}', [StaffRequestController::class, 'update'])->name('institution.staff-requests.update');
+    Route::post('/institution/staff-requests/{staffRequest}/publish', [StaffRequestController::class, 'publish'])->name('institution.staff-requests.publish');
+    Route::post('/institution/staff-requests/{staffRequest}/close', [StaffRequestController::class, 'close'])->name('institution.staff-requests.close');
+
+    Route::get('/institution/staff-requests/{staffRequest}/applications', [InstitutionApplicationController::class, 'index'])->name('institution.applications.index');
+    Route::patch('/institution/applications/{application}', [InstitutionApplicationController::class, 'updateStatus'])->name('institution.applications.update');
 });
 
 require __DIR__.'/auth.php';
