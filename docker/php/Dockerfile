@@ -1,3 +1,13 @@
+# resources/js/app.js imports Ziggy directly from the composer package
+# (vendor/tightenco/ziggy), so the frontend build needs vendor/ installed
+# before it runs — hence a dedicated vendor stage shared by both the
+# frontend build and the final image, instead of running composer install
+# twice.
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
 # Стадия сборки фронтенда отдельная — node/npm не нужны в конечном
 # php-fpm образе, только собранный public/build. Debian-based (glibc), не
 # alpine: rollup's optional native binaries have a known npm-ci bug on musl
@@ -7,6 +17,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY vite.config.js tailwind.config.js postcss.config.js jsconfig.json ./
+COPY --from=vendor /app/vendor/tightenco ./vendor/tightenco
 COPY resources ./resources
 RUN npm run build
 
@@ -28,7 +39,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+COPY --from=vendor /app/vendor ./vendor
 
 COPY . .
 COPY --from=frontend /app/public/build ./public/build
