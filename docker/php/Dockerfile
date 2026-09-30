@@ -6,7 +6,11 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# --ignore-platform-reqs: this bare composer image has none of the PHP
+# extensions (intl, pcntl, redis...) that the final php-fpm image installs —
+# this stage only fetches package files, it never executes app or package
+# code, so the actual extension check happening at runtime is what matters.
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-reqs
 
 # Стадия сборки фронтенда отдельная — node/npm не нужны в конечном
 # php-fpm образе, только собранный public/build. Debian-based (glibc), не
