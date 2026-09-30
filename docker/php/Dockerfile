@@ -1,6 +1,8 @@
 # Стадия сборки фронтенда отдельная — node/npm не нужны в конечном
-# php-fpm образе, только собранный public/build.
-FROM node:22-alpine AS frontend
+# php-fpm образе, только собранный public/build. Debian-based (glibc), не
+# alpine: rollup's optional native binaries have a known npm-ci bug on musl
+# where the platform-specific package silently fails to install.
+FROM node:22-slim AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
