@@ -6,7 +6,7 @@ FROM node:22-slim AS frontend
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY vite.config.js ./
+COPY vite.config.js tailwind.config.js postcss.config.js jsconfig.json ./
 COPY resources ./resources
 RUN npm run build
 
